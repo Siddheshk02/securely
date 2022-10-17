@@ -21,6 +21,9 @@ var userCmd = &cobra.Command{
 		filepath := args[0]
 		//fmt.Println(filepath)
 		//file := args[2]
+		//if _, err := os.Stat(filepath); err != nil {
+		//
+		//}
 
 		test := lib.User(filepath)
 		if test != nil {
