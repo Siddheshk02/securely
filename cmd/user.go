@@ -14,16 +14,7 @@ var userCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		//if len(args) != 2 {
-		//	fmt.Println("Please provide a filepath")
-		//	return
-		//}
 		filepath := args[0]
-		//fmt.Println(filepath)
-		//file := args[2]
-		//if _, err := os.Stat(filepath); err != nil {
-		//
-		//}
 
 		test := lib.User(filepath)
 		if test != nil {
