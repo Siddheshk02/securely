@@ -11,7 +11,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/hashicorp/vault/shamir"
 )
@@ -26,11 +25,12 @@ func Admin(filepath string) (err error) {
 	fmt.Scanf("%d", &shares)
 	fmt.Scanf("%d", &threshold)
 	st := []byte{byte(shares), byte(threshold)}
-	pa := "Admin/info.txt"
-	tem, err := os.Create(pa)
-	fmt.Fprintln(tem, st[0])
-	fmt.Fprintln(tem, st[1])
-	if err != nil {
+	fmt.Println(byte(shares))
+	fmt.Println(byte(threshold))
+
+	te := ioutil.WriteFile("Admin/info.txt", st, 0777)
+
+	if te != nil {
 		log.Fatal(err)
 	}
 
@@ -92,11 +92,12 @@ func Admin(filepath string) (err error) {
 
 	for x := 0; x < shares; x++ {
 		path := "Admin/share" + strconv.Itoa(x+1) + ".txt"
-		file1, err := os.Create(path)
-		if err != nil {
-			log.Fatal("os.Create", err)
+
+		file1 := ioutil.WriteFile(path, n[x], 0777)
+		if file1 != nil {
+			log.Fatal(err)
 		}
-		fmt.Fprintln(file1, n[x])
+
 	}
 	return err
 
@@ -107,17 +108,12 @@ func User(filepath string) (err error) {
 label:
 	var j int = 0
 	fmt.Println("Enter the Number of Secret Shares you want to enter: ")
-	fmt.Scanf("%d", &j)
-	pa := "Admin/info.txt"
+	fmt.Scanf("%d ", &j)
 
-	b, err := ioutil.ReadFile(pa)
+	b, err := os.ReadFile("Admin/info.txt")
 
-	lines := strings.Split(string(b), "\n")
-	s := lines[len(lines)-2]
-	z := lines[len(lines)-1]
-	var shares, threshold int
-	fmt.Sscanf(s, "%d", &shares)
-	fmt.Sscanf(z, "%d", &threshold)
+	shares := int(b[0])
+	threshold := int(b[1])
 
 	if j < threshold {
 		fmt.Println("Please enter the minimum number of Shares i.e. 2")
@@ -143,8 +139,11 @@ label:
 
 	}
 
+	//Checking for duplicate share entered by User
+	var con string
+
 	for h := 0; h < j-1; h++ {
-		var con string
+
 		if (parts[h][0] == parts[h+1][0]) && (parts[h][1] == parts[h+1][1]) {
 			fmt.Println("Share ", h+1, " is repeated")
 			fmt.Print("Do you Want to continue? Yes/No :")
@@ -159,15 +158,16 @@ label:
 		}
 	}
 
+	//Checkinh if The Share entered is Valid or not - start
 	boolean := true
 	var loc int
 
 	var n [5][51]byte
+	for o := 0; o < shares; o++ {
 
-	for o := 0; o < j; o++ {
 		filetemp := "Admin/share" + strconv.Itoa(o+1) + ".txt"
 
-		abc, err := ioutil.ReadFile(filetemp)
+		abc, err := os.ReadFile(filetemp)
 		xyz := string(abc)
 
 		if err != nil {
@@ -195,6 +195,7 @@ label:
 			}
 		}
 	}
+	//Checking if The Share entered is Valid or not - end
 
 label1:
 
@@ -211,6 +212,7 @@ label1:
 		}
 	}
 
+	//Decrypting the file
 	ciphertext, err := os.ReadFile(filepath)
 	if err != nil {
 		log.Fatal(err)
