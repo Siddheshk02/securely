@@ -4,11 +4,17 @@ go 1.17
 
 require golang.org/x/oauth2 v0.4.0
 
-require github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
+require (
+	cloud.google.com/go/compute v1.14.0 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
+	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/hashicorp/vault v1.12.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
