@@ -14,26 +14,16 @@ import (
 	"golang.org/x/oauth2"
 )
 
-//var token1 *oauth2.Token
-
-func GoogleLogin(w http.ResponseWriter, r *http.Request) {
+func UserGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	temp := config.GoogleConfig()
 	url := temp.AuthCodeURL("randomstate")
 
-	//c.Status(fiber.StatusSeeOther)
-	//open.Run(url)
-	//http.Redirect(w, r, url, 302)
-	/*if err := http.Redirect(w, r, url, http.StatusSeeOther); err != nil {
-		panic(fmt.Errorf("failed to open browser for authentication %s", err.Error()))
-	}*/
 	http.Redirect(w, r, url, http.StatusSeeOther)
 	//return open.Json(url)
 	//return err
 }
 
-// var temp string
-
-func GoogleCallback(w http.ResponseWriter, r *http.Request) {
+func UserGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	state := query.Get("state")
 	if state != "randomstate" {
@@ -49,7 +39,7 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Code-Token Exchange Failed %v", err)
 	}
 
-	file, err := os.Create("token.json")
+	file, err := os.Create("usertoken.json")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -63,62 +53,38 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// temp = string(token.AccessToken)
-	// File, err := os.Create("TokenFile.txt")
-	// if err != nil {
-	// 	log.Fatal("ERROR! ", err)
-	// }
-
-	// defer File.Close()
-
-	//File.Write(string(token))
-	// File.WriteString(temp)
-
 	fmt.Println("Authentication successfully done, you are now logged in")
 
-	//accesstoken = token.AccessToken
-
-	/*resp, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
-	if err != nil {
-		log.Fatalf("User Data Fetch Failed %v", err)
-	}
-
-	userData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf("JSON Parsing Failed %v", err)
-	}*/
-
-	//return r.sendstring(userData)
 	fmt.Fprint(w, "Authentication Successfully done. You can now get back to the CLI Terminal.")
 	//fmt.Fprint(w, string(userData))
 	//os.Exit(0)
 	defer func() {
-		var comp string
-		fmt.Println("\nEnter The Company/Organization Name : ")
-		fmt.Scanf("%s", &comp)
+		var comp, ad, dmin string
+		fmt.Println("\nEnter The Company/Organization Name and the Admin name : ")
+		fmt.Scanf("%s %s %s", &comp, &ad, &dmin)
 
-		data, err := Whoami()
+		data, err := WhoamiUser()
 		if err != nil {
 			fmt.Println("Error while getting the User Data. Please Try Again.")
 			return
 		}
-		abc := "admin"
-		ad := ""
-		database.DBconn(data, comp, ad, abc)
+		abc := "user"
+		admin1 := ad + " " + dmin
+		database.DBconn(data, comp, admin1, abc)
 	}()
 
 	return
 
 }
 
-func Whoami() ([]byte, error) {
+func WhoamiUser() ([]byte, error) {
 	var token *oauth2.Token
 	//temp := accesstoken
 	// fmt.Println("1")
 	// fmt.Println(temp)
 	// fmt.Println("2")
 	//file, err := os.ReadFile("TokenFile.txt")
-	file, err := ioutil.ReadFile("token.json")
+	file, err := ioutil.ReadFile("usertoken.json")
 	if err != nil {
 		log.Fatal("Error occured!, try again.")
 	}
@@ -148,31 +114,15 @@ func Whoami() ([]byte, error) {
 
 }
 
-// func Logout() {
-// 	oauth2.ExpireToken(context.Background(), temp)
-// }
+func UserLogout() error {
 
-func Logout() error {
-
-	// homeDir, err := os.UserHomeDir()
-	// if err != nil {
-	// 	return err
-	// }
-
-	//tokenFile := filepath.Join(homeDir, ".securely_token")
-
-	// err := os.Remove("TokenFile.txt")
-	// if err != nil {
-	// 	return err
-	// }
-
-	err := DeleteToken()
+	err := DeleteTokenUser()
 
 	if err != nil {
 		return err
 	}
 
-	err = os.Remove("token.json")
+	err = os.Remove("usertoken.json")
 	if err != nil {
 		return err
 	}
@@ -181,8 +131,8 @@ func Logout() error {
 	return nil
 }
 
-func DeleteToken() error {
-	file, err := os.Open("token.json")
+func DeleteTokenUser() error {
+	file, err := os.Open("usertoken.json")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -209,7 +159,7 @@ func DeleteToken() error {
 	return nil
 }
 
-func FileExists(filename string) bool {
+func UserFileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	return os.IsNotExist(err)
 }

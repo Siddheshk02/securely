@@ -3,13 +3,12 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"net"
-	"net/http"
 
+	"github.com/Siddheshk02/securely/auth"
 	"github.com/Siddheshk02/securely/controllers"
-	"github.com/skratchdot/open-golang/open"
+	"github.com/Siddheshk02/securely/database"
+	"github.com/Siddheshk02/securely/lib"
 
-	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 )
 
@@ -33,39 +32,108 @@ var adminCmd = &cobra.Command{
 	Aliases: []string{"admin"},
 	Args:    cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		var temp int
-		fmt.Println("\n1. Sign Up / Login as Admin")
-		fmt.Println("2. Who AM I ?")
-		fmt.Print("\nEnter any one of the above Options(for e.g. '1') : ")
-		fmt.Scanf("%d", &temp)
-		switch temp {
-		case 1:
-			//login/sign up controller
-			r := mux.NewRouter()
-			r.HandleFunc("/google/login", controllers.GoogleLogin).Methods("GET")
-			r.HandleFunc("/google/callback", controllers.GoogleCallback).Methods("GET")
-			l, err := net.Listen("tcp", "localhost:8088")
-			if err != nil {
-				log.Fatal(err)
+		if auth.Check() {
+			fmt.Println("\nSignUp / Login as Admin")
+
+			fmt.Print("\nPress Enter to Sign up/Login using Google")
+			fmt.Scanf(" ")
+			errr := auth.Signup()
+			if errr != nil {
+				fmt.Println("Error while Signup/Login. Please Try Again.")
+				return
 			}
+			// var comp string
+			// fmt.Println("Enter The Company/Organization Name : ")
+			// fmt.Scan(&comp)
 
-			//browser.OpenURL("http://localhost:8080/google/login")
+			// data, err := controllers.Whoami()
+			// if err != nil {
+			// 	fmt.Println("Error while getting the User Data. Please Try Again.")
+			// 	return
+			// }
+			// database.DBconn(data)
 
-			open.Start("http://localhost:8088/google/login")
-			//http.ListenAndServe(":8080", r)
-			http.Serve(l, r)
-			//GoogleLogin(cmd)
-			//http.Post("/google/login", cmd.GoogleLogin)
+		} else {
+			var temp int
+			fmt.Println("\n1. Encrypt and Secure a File.")
+			fmt.Println("2. See all the Encrypted Files.")
+			fmt.Println("3. Who AM I ?")
+			fmt.Println("4. Logout")
 
-		case 2:
-			//Works only if the user is live orelse please signup or login to Securely
-			fmt.Println("Please Sign Up or Login to Securely to make this feature work :/")
+			fmt.Print("\nEnter any one of the above Options(for e.g. '1') : ")
+			fmt.Scan(&temp)
+			admindata, err := controllers.Whoami()
+			if err != nil {
+				fmt.Println("Error while fetching the Admin Data. Please Try Again.")
+				return
+			}
+			switch temp {
+			case 1:
+				//Encrypt and Secure a File
+				fmt.Println("Encrypt and Secure a File")
+				fmt.Print("\nEnter the File location : ")
+				var filepath string
+				fmt.Scan(&filepath)
+
+				err := lib.Admin(filepath)
+				if err != nil {
+					log.Fatal("Error while creating the Shares for the file!", err.Error())
+
+				} else {
+					fmt.Println("Shares created and distributed")
+				}
+				// err := ui.Main(func() {
+				// 	filePath := ui.OpenFile(nil)
+				// 	if filePath == "" {
+				// 		log.Fatalln("No file selected")
+				// 	}
+
+				// 	fmt.Println("Selected file:", filePath)
+				// })
+				// if err != nil {
+				// 	log.Fatalln(err)
+				// }
+			case 2:
+				//See all the Enrypted Files
+				fmt.Println("See all the Enrypted Files")
+				err := database.ListFilesAdmin(admindata)
+				if err != nil {
+					log.Fatal("Error while Listing the file!", err.Error())
+
+				}
+			case 3:
+				//Who AM I ?
+
+				fmt.Println("User Data : ", string(admindata))
+			case 4:
+				//Logout
+				controllers.Logout()
+			default:
+				fmt.Println("Invalid Option. Please Try Again.")
+
+			}
 
 		}
 
-		//filepath := args[0]
+		//ch := 1
+		// switch temp {
+		// case 1:
+		// 	//login/sign up controller
 
-		//err := lib.Admin(filepath)
+		// 	//GoogleLogin(cmd)
+		// 	//http.Post("/google/login", cmd.GoogleLogin)
+
+		// case 2:
+		//
+
+		// case 3:
+		// 	controllers.Logout()
+
+		// }
+
+		// filepath := args[0]
+
+		// err := lib.Admin(filepath)
 		// if err != nil {
 		// 	log.Fatal("Error while creating the Shares for the file!", err.Error())
 

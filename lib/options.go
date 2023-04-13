@@ -5,46 +5,72 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
-	"strconv"
+	"path/filepath"
+
+	"github.com/Siddheshk02/securely/controllers"
+	"github.com/Siddheshk02/securely/database"
+	"github.com/Siddheshk02/securely/storage"
 
 	"github.com/hashicorp/vault/shamir"
 )
 
-func Admin(filepath string) (err error) {
+func Admin(filep string) (err error) {
 	var shares int
-	var threshold int
 	var gcm cipher.AEAD
 
 	pass := "Hello, World!!"
-	fmt.Println("Enter the Number of Shares and the Threshold you want to create: ")
-	fmt.Scanf("%d", &shares)
-	fmt.Scanf("%d", &threshold)
-	st := []byte{byte(shares), byte(threshold)}
-	fmt.Println(byte(shares))
-	fmt.Println(byte(threshold))
+	fmt.Print("\nEnter the Number of Shares you want to create: ")
+	fmt.Scan(&shares)
+	threshold := int(math.Ceil(float64(shares * 2 / 3)))
 
-	te := ioutil.WriteFile("Admin/info.txt", st, 0777)
+	// fmt.Scan(&threshold)
 
-	if te != nil {
-		log.Fatal(err)
-	}
+	// dirname, err := os.UserHomeDir()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// st := []byte{byte(shares), byte(threshold)}
+	// str := dirname + "/securely/info.txt"
+
+	// fmt.Println("test110")
+	// //te := ioutil.WriteFile(str, st, 0777)
+	// fmt.Println("test111")
+
+	// if te != nil {
+	// 	log.Fatal(err)
+	// }
 
 	c := sha256.New()
 
 	c.Write([]byte(pass))
 	key := c.Sum(nil)
 
-	temp := ioutil.WriteFile("Admin/key.bin", key, 0777)
+	loc := filepath.Base(filep)
+	//str1 := dirname + "/securely/key.bin"
+
+	data, err := controllers.Whoami()
+	if err != nil {
+		fmt.Println("Error while getting the User Data. Please Try Again.")
+		return
+	}
+	fmt.Println("test")
+
+	temp := storage.Files(key, data, loc, 0, 0, 1)
+	//temp := ioutil.WriteFile("Admin/key.bin", key, 0777)
 	if temp != nil {
 		log.Fatal(err)
 	}
 
-	text, err := os.ReadFile(filepath)
+	fmt.Println("test1")
+	text, err := os.ReadFile(filep)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,20 +92,24 @@ func Admin(filepath string) (err error) {
 
 	var secret []byte = gcm.Seal(nonce, nonce, text, nil)
 
-	err = ioutil.WriteFile("Admin/secret.bin", secret, 0777)
-	if err != nil {
-		log.Fatal(err)
-	}
+	//str2 := dirname + "/securely/" + filepath
 
-	err = ioutil.WriteFile("User/secret.bin", secret, 0777)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = ioutil.WriteFile(loc, secret, 0777)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// err = ioutil.WriteFile("User/secret.key", secret, 0777)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	n, err := shamir.Split(secret, shares, threshold)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//str3 := dirname + "/securely/main.txt"
 
 	file, err := os.Create("Admin/main.txt")
 	if err != nil {
@@ -90,61 +120,123 @@ func Admin(filepath string) (err error) {
 		fmt.Fprintln(file, n[l])
 	}
 
+	var sharelist []string = make([]string, shares)
 	for x := 0; x < shares; x++ {
-		path := "Admin/share" + strconv.Itoa(x+1) + ".txt"
+		//path := dirname + "/securely/share" + strconv.Itoa(x+1) + ".txt"
+		//path := "Admin/share" + strconv.Itoa(x+1) + ".txt"
+		sharelist[x] = base64.StdEncoding.EncodeToString(n[x])
 
-		file1 := ioutil.WriteFile(path, n[x], 0777)
-		if file1 != nil {
-			log.Fatal(err)
-		}
+		// file1 := ioutil.WriteFile(path, n[x], 0777)
+		// if file1 != nil {
+		// 	log.Fatal(err)
+		// }
 
 	}
+
+	//storage.Upload(loc, data, shares, threshold)
+	storage.SharesFile(n, data, loc, shares)
+	storage.Files(secret, data, loc, shares, threshold, 3)
+
+	fmt.Println("Select the Users who can access this file using Shares : ")
+	fmt.Println(" ")
+	database.AddUser(data, shares, sharelist, loc)
+
 	return err
 
 }
 
-func User(filepath string) (err error) {
+func User(filename string, admin string, user []byte) (err error) {
 
 label:
-	var j int = 0
-	fmt.Println("Enter the Number of Secret Shares you want to enter: ")
-	fmt.Scanf("%d ", &j)
 
-	b, err := os.ReadFile("Admin/info.txt")
+	// fmt.Print("Enter the Number of Secret Shares you want to enter: ")
+	// j := 0
+	// fmt.Scan(&j)
 
-	shares := int(b[0])
-	threshold := int(b[1])
+	shares, threshold := database.Read(filename, admin)
+	// fmt.Println(shares, threshold)
 
-	if j < threshold {
-		fmt.Println("Please enter the minimum number of Shares i.e. 2")
-		fmt.Println(" ")
+	//b, err := os.ReadFile("Admin/info.txt")
 
-		goto label
-	} else if j > shares {
-		fmt.Println("Exceeded the Number of Shares!!")
+	// shares := int(b[0])
+	// threshold := int(b[1])
 
-		goto label
+	// if j < threshold {
+	// 	fmt.Printf("Please enter the minimum number of Shares i.e. %d\n", threshold)
+	// 	fmt.Println(" ")
+
+	// 	goto label
+	// } else if j > shares {
+	// 	fmt.Println("Exceeded the Number of Shares!!")
+
+	// 	goto label
+	// }
+	n, key, ciphertext, err := storage.ReadShares(filename, admin, shares)
+	if err != nil {
+		fmt.Println("Error while reading the shares")
+		return
 	}
 
-	var parts [5][51]byte
-	a := 51
+	var parts [][]byte
 
-	for i := 0; i < j; i++ {
+	//parts = make([][]byte, threshold)
+	// fmt.Println(len(parts))
+	//var parts [][]byte
+	a := 53
+	// fmt.Println("test1")
+	// fmt.Println(parts[0][0])
+
+	for i := 0; i < threshold; i++ {
+		// parts[i] = make([]byte, a)
 		fmt.Print("Enter the Secret Share: ")
+		// // var f, g byte
+		// // fmt.Scan(f)
+		// // parts[i][0] = f
+		// // fmt.Scan(g)
+		// // parts[i][0] = g
+		short := make([]byte, 53)
 		for x := 0; x < a; x++ {
-			fmt.Scan(&parts[i][x])
+			fmt.Scan(&short[x])
 
 		}
+		parts = append(parts, short)
 		fmt.Println(" ")
 
 	}
+	// fmt.Println("test2")
+	// //fmt.Println("Check 1")
 
-	//Checking for duplicate share entered by User
+	// //Checking for duplicate share entered by User
+	// for i := 0; i < threshold; i++ {
+	// 	fmt.Println(parts[i])
+	// }
+	// for i := 0; i < threshold; i++ {
+	// 	parts[i] = make([]byte, a)
+	// }
+
+	// // Read the input array from the user
+	// fmt.Println("Enter the byte array elements:")
+	// for i := 0; i < threshold; i++ {
+	// 	for j := 0; j < a; j++ {
+	// 		fmt.Printf("parts[%d][%d]: ", i, j)
+	// 		fmt.Scanf("%d", &parts[i][j])
+	// 	}
+	// }
+
+	// Print the input array
+	fmt.Println("Input byte array:")
+	for i := 0; i < threshold; i++ {
+		fmt.Println(parts[i])
+	}
+
 	var con string
 
-	for h := 0; h < j-1; h++ {
+	//fmt.Println("Check 2")
+	for h := 0; h < threshold-1; h++ {
+		fmt.Println("Check10")
 
 		if (parts[h][0] == parts[h+1][0]) && (parts[h][1] == parts[h+1][1]) {
+			fmt.Println("Check11")
 			fmt.Println("Share ", h+1, " is repeated")
 			fmt.Print("Do you Want to continue? Yes/No :")
 			fmt.Scan(&con)
@@ -152,35 +244,37 @@ label:
 			if con == "Yes" {
 				goto label
 			} else {
-				return
+				err := errors.New("Process Stopped!")
+				return err
 			}
 
 		}
 	}
 
+	//fmt.Println("Check 3")
 	//Checkinh if The Share entered is Valid or not - start
 	boolean := true
 	var loc int
 
-	var n [5][51]byte
-	for o := 0; o < shares; o++ {
+	//var n [100][49]byte
+	// for o := 0; o < shares; o++ {
 
-		filetemp := "Admin/share" + strconv.Itoa(o+1) + ".txt"
+	// 	filetemp := "Admin/share" + strconv.Itoa(o+1) + ".txt"
 
-		abc, err := os.ReadFile(filetemp)
-		xyz := string(abc)
+	// 	abc, err := os.ReadFile(filetemp)
+	// 	xyz := string(abc)
 
-		if err != nil {
-			log.Fatal(err)
-		}
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
 
-		for eg := 0; eg < 51; eg++ {
-			n[o][eg] = xyz[eg]
-		}
+	// 	for eg := 0; eg < 49; eg++ {
+	// 		n[o][eg] = xyz[eg]
+	// 	}
 
-	}
+	// }
 
-	for i := 0; i < j; i++ {
+	for i := 0; i < threshold; i++ {
 		boolean = true
 		for x := 0; x < shares; x++ {
 			if (parts[i][0] == n[x][0]) && (parts[i][1] == n[x][1]) {
@@ -208,20 +302,22 @@ label1:
 		if con == "Yes" {
 			goto label
 		} else {
-			return
+			err := errors.New("Process Stopped!")
+			return err
 		}
 	}
 
 	//Decrypting the file
-	ciphertext, err := os.ReadFile(filepath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// ciphertext, err := os.ReadFile(filename)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	key, err := os.ReadFile("Admin/key.bin")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// str1 := "Admin/key.bin"
+	// key, err := os.ReadFile(str1)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -240,10 +336,12 @@ label1:
 		log.Panic(err)
 	}
 
-	err = ioutil.WriteFile("User/encrypted.txt", plaintext, 0777)
+	err = ioutil.WriteFile("User/"+filename, plaintext, 0777)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	return err
+	err = database.AccessLogs(admin, filename, user)
+
+	return nil
 }
