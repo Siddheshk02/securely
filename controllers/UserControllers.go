@@ -11,6 +11,7 @@ import (
 
 	"github.com/Siddheshk02/securely/config"
 	"github.com/Siddheshk02/securely/database"
+	"github.com/Siddheshk02/securely/mail"
 	"golang.org/x/oauth2"
 )
 
@@ -71,6 +72,15 @@ func UserGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		abc := "user"
 		admin1 := ad + " " + dmin
 		database.DBconn(data, comp, admin1, abc)
+		var result map[string]interface{}
+		json.Unmarshal(data, &result)
+
+		name := result["name"].(string)
+		email := result["email"].(string)
+
+		fmt.Println(name, email)
+
+		err = mail.SendMail(name, email, "", 1)
 	}()
 
 	return

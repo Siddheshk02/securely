@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -42,6 +43,7 @@ var adminCmd = &cobra.Command{
 				fmt.Println("Error while Signup/Login. Please Try Again.")
 				return
 			}
+
 			// var comp string
 			// fmt.Println("Enter The Company/Organization Name : ")
 			// fmt.Scan(&comp)
@@ -67,6 +69,12 @@ var adminCmd = &cobra.Command{
 				fmt.Println("Error while fetching the Admin Data. Please Try Again.")
 				return
 			}
+
+			var result map[string]interface{}
+			json.Unmarshal(admindata, &result)
+			name := result["name"].(string)
+			email := result["email"].(string)
+
 			switch temp {
 			case 1:
 				//Encrypt and Secure a File
@@ -80,6 +88,7 @@ var adminCmd = &cobra.Command{
 					log.Fatal("Error while creating the Shares for the file!", err.Error())
 
 				} else {
+
 					fmt.Println("Shares created and distributed")
 				}
 				// err := ui.Main(func() {
@@ -96,7 +105,7 @@ var adminCmd = &cobra.Command{
 			case 2:
 				//See all the Enrypted Files
 				fmt.Println("See all the Enrypted Files")
-				err := database.ListFilesAdmin(admindata)
+				err := database.ListFilesAdmin(name, email)
 				if err != nil {
 					log.Fatal("Error while Listing the file!", err.Error())
 

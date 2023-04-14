@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"github.com/Siddheshk02/securely/mail"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
@@ -304,6 +305,7 @@ func AddUser(data []byte, shares int, sharelist []string, file string) {
 			if err != nil {
 				log.Fatalf("Failed to update user document: %v", err)
 			}
+			err = mail.SendMail(users[id].UserName, users[id].Email, name, 2)
 			x++
 		}
 	}
@@ -392,7 +394,7 @@ func AccessLogs(admin string, filename string, user []byte) error {
 	}
 	defer client.Close()
 
-	docname := filename + name
+	docname := filename + " : " + name
 
 	cd, err := client.Collection("Access_Logs").Doc(docname).Set(ctx, map[string]interface{}{
 		"admin_name":   name,
@@ -414,7 +416,7 @@ type Admin struct {
 	File string `firestore:"file_name"`
 }
 
-func ListFilesAdmin(admin []byte) error {
+func ListFilesAdmin(name string, email string) error {
 
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("ly-f41b7-firebase-adminsdk-kzb1q-745b542733.json")
@@ -428,10 +430,10 @@ func ListFilesAdmin(admin []byte) error {
 		log.Fatalln(err)
 	}
 
-	var result map[string]interface{}
-	json.Unmarshal(admin, &result)
-	name := result["name"].(string)
-	email := result["email"].(string)
+	// var result map[string]interface{}
+	// json.Unmarshal(admin, &result)
+	// name := result["name"].(string)
+	// email := result["email"].(string)
 
 	FilesDoc := client.Collection("Files").
 		Where("admin", "==", name).
