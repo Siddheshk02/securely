@@ -3,6 +3,7 @@ package mail
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -11,6 +12,8 @@ import (
 func SendMail(name string, email string, admin string, check int) error {
 
 	from := mail.NewEmail("Securely", "noreply@securelee.tech")
+
+	key := os.Getenv("Key")
 	if check == 1 {
 		subject := "Welcome to Securely"
 
@@ -22,7 +25,7 @@ func SendMail(name string, email string, admin string, check int) error {
 
 		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
-		client := sendgrid.NewSendClient("")
+		client := sendgrid.NewSendClient(key)
 
 		response, err := client.Send(message)
 		if err != nil {
@@ -42,7 +45,7 @@ func SendMail(name string, email string, admin string, check int) error {
 
 		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
-		client := sendgrid.NewSendClient("")
+		client := sendgrid.NewSendClient(key)
 
 		response, err := client.Send(message)
 		if err != nil {
