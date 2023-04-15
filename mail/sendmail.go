@@ -22,7 +22,7 @@ func SendMail(name string, email string, admin string, check int) error {
 
 		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
-		client := sendgrid.NewSendClient("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")
+		client := sendgrid.NewSendClient("")
 
 		response, err := client.Send(message)
 		if err != nil {
@@ -42,7 +42,7 @@ func SendMail(name string, email string, admin string, check int) error {
 
 		message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
-		client := sendgrid.NewSendClient("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")
+		client := sendgrid.NewSendClient("")
 
 		response, err := client.Send(message)
 		if err != nil {
