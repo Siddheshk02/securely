@@ -83,7 +83,7 @@ func Files(info []byte, data []byte, files string, shares int, threshold int, ch
 		log.Fatalf("Failed to initialize Firebase Cloud Storage client: %v", err)
 	}
 
-	fmt.Println("test2")
+	// fmt.Println("test2")
 	// Initialize Cloud Storage client
 	// client, err := app.Storage(context.Background())
 	// if err != nil {
@@ -112,9 +112,9 @@ func Files(info []byte, data []byte, files string, shares int, threshold int, ch
 		log.Fatalf("Failed to get default Firebase Cloud Storage bucket: %v", err)
 	}
 
-	fmt.Println("test3")
+	// fmt.Println("test3")
 	var object *storage.ObjectHandle
-	fmt.Println(name, files)
+	//fmt.Println(name, files)
 
 	if ch == 1 {
 		filename := name + " : " + files + "/" + "key"
@@ -122,7 +122,7 @@ func Files(info []byte, data []byte, files string, shares int, threshold int, ch
 	} else if ch == 3 {
 		object = bucket.Object(name + " : " + files + "/" + files)
 	}
-	fmt.Println("test4")
+	// fmt.Println("test4")
 	wc := object.NewWriter(context.Background())
 	if _, err = wc.Write(info); err != nil {
 		log.Fatalf("Failed to write file to Firebase Cloud Storage: %v", err)
@@ -130,7 +130,7 @@ func Files(info []byte, data []byte, files string, shares int, threshold int, ch
 	if err := wc.Close(); err != nil {
 		log.Fatalf("Failed to close Firebase Cloud Storage writer: %v", err)
 	}
-	fmt.Println("test5")
+	// fmt.Println("test5")
 
 	if ch == 3 {
 		fmt.Println("File uploaded!")

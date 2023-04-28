@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/user"
 
 	"github.com/Siddheshk02/securely/config"
 	"github.com/Siddheshk02/securely/database"
@@ -17,9 +18,11 @@ import (
 
 func UserGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	temp := config.GoogleConfig()
+	// fmt.Println(temp)
 	url := temp.AuthCodeURL("randomstate")
 
-	http.Redirect(w, r, url, http.StatusSeeOther)
+	// fmt.Println(url)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	//return open.Json(url)
 	//return err
 }
@@ -40,7 +43,22 @@ func UserGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Code-Token Exchange Failed %v", err)
 	}
 
-	file, err := os.Create("usertoken.json")
+	currentUser, err := user.Current()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	path := currentUser.HomeDir + "/securely"
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		log.Fatal("Error occured!, try again.")
+	}
+
+	// Construct the path to the token file in the user's home directory
+	tokenPath := currentUser.HomeDir + "/securely/usertoken.json"
+
+	file, err := os.Create(tokenPath)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -78,9 +96,9 @@ func UserGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		name := result["name"].(string)
 		email := result["email"].(string)
 
-		fmt.Println(name, email)
+		// fmt.Println(name, email)
 
-		err = mail.SendMail(name, email, "", 1)
+		err = mail.SendMail(name, email)
 	}()
 
 	return
@@ -94,7 +112,15 @@ func WhoamiUser() ([]byte, error) {
 	// fmt.Println(temp)
 	// fmt.Println("2")
 	//file, err := os.ReadFile("TokenFile.txt")
-	file, err := ioutil.ReadFile("usertoken.json")
+	currentUser, err := user.Current()
+	if err != nil {
+		log.Fatal("Error occured!, try again.")
+	}
+
+	// Construct the path to the token file in the user's home directory
+	tokenPath := currentUser.HomeDir + "/securely/usertoken.json"
+
+	file, err := ioutil.ReadFile(tokenPath)
 	if err != nil {
 		log.Fatal("Error occured!, try again.")
 	}
@@ -132,7 +158,15 @@ func UserLogout() error {
 		return err
 	}
 
-	err = os.Remove("usertoken.json")
+	currentUser, err := user.Current()
+	if err != nil {
+		log.Fatal("Error occured!, try again.")
+	}
+
+	// Construct the path to the token file in the user's home directory
+	tokenPath := currentUser.HomeDir + "/securely/usertoken.json"
+
+	err = os.Remove(tokenPath)
 	if err != nil {
 		return err
 	}
@@ -142,7 +176,16 @@ func UserLogout() error {
 }
 
 func DeleteTokenUser() error {
-	file, err := os.Open("usertoken.json")
+
+	currentUser, err := user.Current()
+	if err != nil {
+		log.Fatal("Error occured!, try again.")
+	}
+
+	// Construct the path to the token file in the user's home directory
+	tokenPath := currentUser.HomeDir + "/securely/usertoken.json"
+
+	file, err := os.Open(tokenPath)
 	if err != nil {
 		log.Fatal(err)
 	}

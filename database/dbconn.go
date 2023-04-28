@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -190,8 +191,8 @@ func Read(filename string, admin string) (int, int) {
 		log.Fatalf("Failed to deserialize document: %v", err)
 	}
 
-	fmt.Printf("Shares : %d\n", myData.Shares)
-	fmt.Printf("Threshold : %d\n", myData.Threshold)
+	// fmt.Printf("Shares : %d\n", myData.Shares)
+	// fmt.Printf("Threshold : %d\n", myData.Threshold)
 
 	return myData.Shares, myData.Threshold
 }
@@ -305,7 +306,9 @@ func AddUser(data []byte, shares int, sharelist []string, file string) {
 			if err != nil {
 				log.Fatalf("Failed to update user document: %v", err)
 			}
-			err = mail.SendMail(users[id].UserName, users[id].Email, name, 2)
+			// fmt.Println("testsid")
+			err = mail.UserMail(users[id].UserName, users[id].Email, name)
+			// fmt.Println("testsid1")
 			x++
 		}
 	}
@@ -368,18 +371,14 @@ func ShowFiles(userdata []byte) (string, string) {
 	}
 
 	var index int
-	fmt.Println("Enter the Index of the file : ")
+	fmt.Print("Enter the Index of the file : ")
 	fmt.Scan(&index)
+	fmt.Println(" ")
 
 	return users[index].File, users[index].Admin
 }
 
-func AccessLogs(admin string, filename string, user []byte) error {
-	var result map[string]interface{}
-	json.Unmarshal(user, &result)
-
-	name := result["name"].(string)
-	email := result["email"].(string)
+func AccessLogs(admin string, filename string, name string, email string) error {
 
 	ctx := context.Background()
 	sa := option.WithCredentialsFile("ly-f41b7-firebase-adminsdk-kzb1q-745b542733.json")
@@ -465,5 +464,96 @@ func ListFilesAdmin(name string, email string) error {
 	}
 
 	return nil
+
+}
+
+type File struct {
+	Admin    string `firestore:"admin"`
+	Filename string `firestore:"file_name"`
+	Email    string `firestore:"email"`
+}
+
+func AdminEmail(admin string, filename string) string {
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("ly-f41b7-firebase-adminsdk-kzb1q-745b542733.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	doc := filename + " : " + admin
+
+	FilesDoc, err := client.Collection("Files").Doc(doc).Get(ctx)
+
+	if FilesDoc == nil {
+		log.Println("No documents found")
+	}
+
+	//var c File
+	c := FilesDoc.Data()
+	// fmt.Printf("Document data: %#v\n", c)
+	// fmt.Println(c["email"])
+	res := fmt.Sprint(c["email"])
+
+	return res
+}
+
+func GetShares(userdata []byte) {
+
+	var result map[string]interface{}
+	json.Unmarshal(userdata, &result)
+	name := result["name"].(string)
+	email := result["email"].(string)
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("ly-f41b7-firebase-adminsdk-kzb1q-745b542733.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	Userinfo := client.Collection("Users").Doc(name)
+
+	if Userinfo == nil {
+		log.Println("No documents found")
+	}
+	snap, err := Userinfo.Get(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var File, admin, sharestr string
+	data := snap.Data()
+	if data["email"] == email {
+		File = fmt.Sprint(data["file"])
+		admin = fmt.Sprint(data["admin"])
+		sharestr = fmt.Sprint(data["share"])
+	}
+
+	//var c File
+	//c := Userinfo.Data()
+	// fmt.Printf("Document data: %#v\n", c)
+	//fmt.Println(File, admin, share)
+	share, err := base64.StdEncoding.DecodeString(sharestr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("\nFile : " + File)
+	fmt.Println("Admin : " + admin)
+	fmt.Print("Share : ")
+	fmt.Println(share)
+	fmt.Println("")
+	//res := fmt.Sprint(c["email"])
 
 }

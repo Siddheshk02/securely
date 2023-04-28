@@ -1,10 +1,11 @@
 # Binaries for programs and plugins
-*.exe
-*.exe~
 *.env
 *.dll
 *.so
 *.dylib
+*.crt
+*.key
+
 
 # Test binary, built with `go test -c`
 *.test

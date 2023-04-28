@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/Siddheshk02/securely/controllers"
 	"github.com/Siddheshk02/securely/database"
+	"github.com/Siddheshk02/securely/mail"
 	"github.com/Siddheshk02/securely/storage"
 
 	"github.com/hashicorp/vault/shamir"
@@ -61,7 +63,7 @@ func Admin(filep string) (err error) {
 		fmt.Println("Error while getting the User Data. Please Try Again.")
 		return
 	}
-	fmt.Println("test")
+	//fmt.Println("test")
 
 	temp := storage.Files(key, data, loc, 0, 0, 1)
 	//temp := ioutil.WriteFile("Admin/key.bin", key, 0777)
@@ -69,7 +71,7 @@ func Admin(filep string) (err error) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("test1")
+	//fmt.Println("test1")
 	text, err := os.ReadFile(filep)
 	if err != nil {
 		log.Fatal(err)
@@ -224,19 +226,19 @@ label:
 	// }
 
 	// Print the input array
-	fmt.Println("Input byte array:")
-	for i := 0; i < threshold; i++ {
-		fmt.Println(parts[i])
-	}
+	// fmt.Println("Input byte array:")
+	// for i := 0; i < threshold; i++ {
+	// 	fmt.Println(parts[i])
+	// }
 
 	var con string
 
 	//fmt.Println("Check 2")
 	for h := 0; h < threshold-1; h++ {
-		fmt.Println("Check10")
+		//fmt.Println("Check10")
 
 		if (parts[h][0] == parts[h+1][0]) && (parts[h][1] == parts[h+1][1]) {
-			fmt.Println("Check11")
+			//fmt.Println("Check11")
 			fmt.Println("Share ", h+1, " is repeated")
 			fmt.Print("Do you Want to continue? Yes/No :")
 			fmt.Scan(&con)
@@ -336,12 +338,24 @@ label1:
 		log.Panic(err)
 	}
 
-	err = ioutil.WriteFile("User/"+filename, plaintext, 0777)
+	fmt.Print("Enter file path to save the downloaded file: ")
+	var savePath string
+	fmt.Scan(&savePath)
+
+	err = ioutil.WriteFile(savePath+"/"+filename, plaintext, 0777)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	err = database.AccessLogs(admin, filename, user)
+	var result map[string]interface{}
+	json.Unmarshal(user, &result)
+	name := result["name"].(string)
+	email := result["email"].(string)
+
+	err = database.AccessLogs(admin, filename, name, email)
+
+	ademail := database.AdminEmail(admin, filename)
+	mail.MailAdmin(admin, ademail, filename, name)
 
 	return nil
 }

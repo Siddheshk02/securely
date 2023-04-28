@@ -31,8 +31,9 @@ var userCmd = &cobra.Command{
 		} else {
 			var temp int
 			fmt.Println("\n1. Decrypt a File.")
-			fmt.Println("2. Who AM I ?")
-			fmt.Println("3. Logout")
+			fmt.Println("2. See Shares Alloted.")
+			fmt.Println("3. Who AM I ?")
+			fmt.Println("4. Logout")
 
 			userd, err := controllers.WhoamiUser()
 			if err != nil {
@@ -53,7 +54,7 @@ var userCmd = &cobra.Command{
 				file, adm := database.ShowFiles(userd)
 				// var filepath string
 				// fmt.Scan(&filepath)
-				fmt.Println(file, adm)
+				// fmt.Println(file, adm)
 				test := lib.User(file, adm, userd)
 				if test != nil {
 					//log.Fatal("Error!! ", test.Error())
@@ -63,6 +64,11 @@ var userCmd = &cobra.Command{
 					fmt.Println("File Decrypted Successfully!")
 				}
 			case 2:
+				//See Shares Alloted
+				fmt.Println("Shares Alloted :")
+				database.GetShares(userd)
+
+			case 3:
 				//Who AM I ?
 				userdata, err := controllers.WhoamiUser()
 				if err != nil {
@@ -70,7 +76,7 @@ var userCmd = &cobra.Command{
 					return
 				}
 				fmt.Println("User Data : ", string(userdata))
-			case 3:
+			case 4:
 				//Logout
 				controllers.UserLogout()
 			default:

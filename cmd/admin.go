@@ -39,6 +39,7 @@ var adminCmd = &cobra.Command{
 			fmt.Print("\nPress Enter to Sign up/Login using Google")
 			fmt.Scanf(" ")
 			errr := auth.Signup()
+			//errr := auth.Auth0signup()
 			if errr != nil {
 				fmt.Println("Error while Signup/Login. Please Try Again.")
 				return

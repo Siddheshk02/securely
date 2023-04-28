@@ -2,7 +2,10 @@ module github.com/Siddheshk02/securely
 
 go 1.17
 
-require golang.org/x/oauth2 v0.6.0
+require (
+	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
+	golang.org/x/oauth2 v0.6.0
+)
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
@@ -21,7 +24,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.7.1 // indirect
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
-	github.com/sendgrid/sendgrid-go v3.12.0+incompatible // indirect
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
