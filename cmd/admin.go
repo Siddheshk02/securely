@@ -33,10 +33,15 @@ var adminCmd = &cobra.Command{
 	Aliases: []string{"admin"},
 	Args:    cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
+		// var id string
+		// var secret string
 		if auth.Check() {
 			fmt.Println("\nSignUp / Login as Admin")
 
-			fmt.Print("\nPress Enter to Sign up/Login using Google")
+			// fmt.Println("Enter The Client ID and the Client Secret : ")
+			// fmt.Scanf("%s %s", &id, &secret)
+
+			fmt.Println("\nPress Enter to Sign up/Login using Google")
 			fmt.Scanf(" ")
 			errr := auth.Signup()
 			//errr := auth.Auth0signup()

@@ -16,12 +16,21 @@ var userCmd = &cobra.Command{
 	Aliases: []string{"user"},
 	Args:    cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
+		// var id string
+		// var secret string
 
 		if auth.UserCheck() {
 			fmt.Println("\nSignUp / Login as User")
 
-			fmt.Print("\nPress Enter to Sign up/Login ")
+			// fmt.Println("Enter The Client ID and the Client Secret : ")
+			// fmt.Scanf("%s %s", &id, &secret)
+
+			// fmt.Println("Enter The Client Secret : ")
+			// fmt.Scanf("%s", &secret)
+
+			fmt.Println("\nPress Enter to Sign up/Login ")
 			fmt.Scanf(" ")
+			//errr := auth.UserSignup()
 			errr := auth.UserSignup()
 			if errr != nil {
 				fmt.Println("Error while Signup/Login. Please Try Again.")

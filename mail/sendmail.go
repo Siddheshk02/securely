@@ -14,7 +14,7 @@ func SendMail(name string, email string) error {
 
 	err := godotenv.Load(".env")
 	from := mail.NewEmail("Securely", "noreply@securelee.tech")
-	key := os.Getenv("Key")
+	key := os.Getenv("SENDGRID_API_KEY")
 
 	subject := "Welcome to Securely"
 
@@ -42,7 +42,7 @@ func UserMail(name string, email string, admin string) error {
 	err := godotenv.Load(".env")
 
 	from := mail.NewEmail("Securely", "noreply@securelee.tech")
-	key := os.Getenv("Key")
+	key := os.Getenv("SENDGRID_API_KEY")
 	subject := "[New Share Alloted]"
 
 	//fmt.Println(name, email)
@@ -70,7 +70,7 @@ func MailAdmin(admin string, email string, filename string, name string) {
 	err := godotenv.Load(".env")
 
 	from := mail.NewEmail("Securely", "noreply@securelee.tech")
-	key := os.Getenv("Key")
+	key := os.Getenv("SENDGRID_API_KEY")
 
 	subject := "[File Downloaded!]"
 

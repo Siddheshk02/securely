@@ -19,9 +19,11 @@ func GoogleConfig() oauth2.Config {
 	}
 
 	GoogleLoginConfig = oauth2.Config{
-		RedirectURL:  "http://localhost:8080/google/callback",
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		RedirectURL: "http://localhost:8080/google/callback",
+		ClientID:    os.Getenv("GOOGLE_CLIENT_ID"),
+		//ClientID: id,
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		//ClientSecret: secret,
 		Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile"},
 		Endpoint: google.Endpoint,

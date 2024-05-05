@@ -130,6 +130,8 @@ func GoogleCallback(w http.ResponseWriter, r *http.Request) {
 		//fmt.Println(name, email)
 
 		err = mail.SendMail(name, email)
+
+		os.Exit(0)
 	}()
 
 	return
